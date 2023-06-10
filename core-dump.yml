@@ -1,0 +1,34 @@
+- name: Configure Core Dump on Ubuntu
+  hosts: aws
+  become: true
+
+  tasks:
+    - name: Create Core Dump Directory
+      file:
+        path: /var/coredumps
+        state: directory
+        mode: '0755'
+
+    - name: Enable Core Dump
+      lineinfile:
+        dest: /etc/security/limits.conf
+        line: "* soft core unlimited"
+        state: present
+        backup: yes
+
+    - name: Adjust Core Dump Pattern
+      lineinfile:
+        dest: /etc/sysctl.conf
+        line: "kernel.core_pattern=/var/coredumps/core.%e.%p.%t"
+        state: present
+        backup: yes
+
+    - name: Set Core Dump Permission
+      lineinfile:
+        dest: /etc/sysctl.conf
+        line: "fs.suid_dumpable=2"
+        state: present
+        backup: yes
+
+    - name: Load New Sysctl Settings
+      command: sysctl --system
